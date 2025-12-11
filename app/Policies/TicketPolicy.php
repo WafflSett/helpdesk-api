@@ -8,12 +8,19 @@ use Illuminate\Auth\Access\Response;
 
 class TicketPolicy
 {
+    public function before(User $user){
+        if ($user->role === 'admin') {
+            return true;
+        }
+        return null;
+    }
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->role==='admin';
+        return $user->role === 'agent';
     }
 
     /**
@@ -21,7 +28,7 @@ class TicketPolicy
      */
     public function view(User $user, Ticket $ticket): bool
     {
-        return $user->id === $ticket->user_id || $user->role === 'admin';
+        return $user->id == $ticket->user_id;
     }
 
     /**
@@ -37,7 +44,7 @@ class TicketPolicy
      */
     public function update(User $user, Ticket $ticket): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +52,7 @@ class TicketPolicy
      */
     public function delete(User $user, Ticket $ticket): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 
     /**
