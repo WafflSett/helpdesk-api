@@ -1,15 +1,11 @@
 <?php
-namespace Tests\Feature;
 
 use App\Http\Controllers\TicketController;
 use App\Models\User;
 use App\Models\Ticket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
-use Mockery;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('delete ticket endpoint exists', function () {
     expect(method_exists(TicketController::class, 'destroy'))->toBeTrue();
@@ -81,6 +77,19 @@ test('guest cannot delete a ticket', function () {
 
     $response->assertUnauthorized();
 });
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Models\Ticket;
+use App\Http\Controllers\TicketController;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
+use Mockery;
+
+
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
 
 beforeEach(function () {
     $this->withoutMiddleware();
