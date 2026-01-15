@@ -13,6 +13,94 @@ beforeEach(function (){
     $this->withoutMiddleware();
 });
 
+// index method tests
+test('index function exists', function () {
+    expect(method_exists(TicketController::class, 'index'))->ToBeTrue();
+});
+
+test('index method is called when hitting /api/tickets', function () {
+    $user = User::factory()->create(['role' => 'customer']);
+    Auth::login($user);
+
+    $controllerMock = Mockery::mock(TicketController::class)->makePartial();
+    $controllerMock->shouldReceive('index')->once();
+
+    $this->app->instance(TicketController::class, $controllerMock);
+    $this->get('/api/tickets');
+});
+
+test('index method returns the correct status code', function () {
+    $user = User::factory()->create(['role' => 'customer']);
+    Auth::login($user);
+
+    $response = $this->get('/api/tickets');
+    $response->assertStatus(200);
+});
+
+test('index method returns the correct JSON response', function () {
+    $customer = User::factory()->create(['role' => 'customer']);
+    Auth::login($customer);
+
+    $ticket = Ticket::factory()->create(['user_id' => $customer->id]);
+
+    $response = $this->get('/api/tickets');
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['id' => $ticket->id]);
+});
+
+
+// show method tests
+test('show function exists', function () {
+    expect(method_exists(TicketController::class, 'show'))->ToBeTrue();
+});
+
+test('show method returns the correct status code 200', function () {
+    $customer = User::factory()->create(['role' => 'customer']);
+
+    $ticket = Ticket::create([
+        'title' => '$request->title',
+        'description' => '$request->description',
+        'user_id' => $customer->id,
+    ]);
+
+    $response = $this->get('/api/tickets/' . $ticket->id);
+
+    $response->assertStatus(200);
+});
+
+test('GET /api/tickets/{ticket} returns the ticket with correct status and JSON', function () {
+    $user = User::factory()->create(['role' => 'customer']);
+    $this->actingAs($user);
+
+    $ticket = Ticket::factory()->create([
+        'user_id' => $user->id,
+        'title' => 'Test Ticket',
+        'description' => 'Ticket description',
+        'status' => 'open',
+    ]);
+    $response = $this->getJson("/api/tickets/{$ticket->id}");
+
+    $response->assertStatus(200);
+
+    $json = $response->json();
+    $this->assertArrayHasKey('ticket', $json);
+
+    $fetchedTicket = Ticket::find($ticket->id);
+    $this->assertNotNull($fetchedTicket, 'Ticket should exist in database');
+
+    $this->assertEquals('Test Ticket', $fetchedTicket->title);
+    $this->assertEquals('Ticket description', $fetchedTicket->description);
+    $this->assertEquals($user->id, $fetchedTicket->user_id);
+    $this->assertEquals('open', $fetchedTicket->status);
+});
+
+test("GET /api/tickets/99999 non-existing ticket", function () {
+    $fetchedTicket = Ticket::find(99999);
+    $this->assertNull($fetchedTicket, 'Ticket should not exist in database');
+
+});
+
 // store
 test('store function exists', function () {
     expect(method_exists(TicketController::class, 'store'))->toBeTrue();
