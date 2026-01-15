@@ -9,7 +9,7 @@ use Mockery;
 uses(Tests\TestCase::class)->in('Feature');
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-beforeEach(function (){
+beforeEach(function () {
     $this->withoutMiddleware();
 });
 
@@ -98,14 +98,13 @@ test('GET /api/tickets/{ticket} returns the ticket with correct status and JSON'
 test("GET /api/tickets/99999 non-existing ticket", function () {
     $fetchedTicket = Ticket::find(99999);
     $this->assertNull($fetchedTicket, 'Ticket should not exist in database');
-
 });
 
 // store
 test('store function exists', function () {
     expect(method_exists(TicketController::class, 'store'))->toBeTrue();
 });
-test('store function runs on post call', function(){
+test('store function runs on post call', function () {
 
     $mock = Mockery::mock(TicketController::class)->makePartial();
     $mock->shouldReceive('store')->once();
@@ -114,8 +113,8 @@ test('store function runs on post call', function(){
 
     $this->post('/api/tickets');
 });
-test('store function return with status code 201 - created', function(){
-    $user = User::factory()->create(['role'=>'customer']);
+test('store function return with status code 201 - created', function () {
+    $user = User::factory()->create(['role' => 'customer']);
     $this->actingAs($user);
 
     $payload = Ticket::factory()->make([
@@ -127,8 +126,8 @@ test('store function return with status code 201 - created', function(){
     $response->assertStatus(201);
 });
 
-test('store function returns the newly created ticket', function(){
-    $user = User::factory()->create(['role'=>'customer']);
+test('store function returns the newly created ticket', function () {
+    $user = User::factory()->create(['role' => 'customer']);
     $this->actingAs($user);
 
     $payload = Ticket::factory()->make([
@@ -138,7 +137,7 @@ test('store function returns the newly created ticket', function(){
     $response = $this->post('/api/tickets', $payload);
 
     $response->assertJson([
-        'ticket'=>[
+        'ticket' => [
             'title' => $payload['title'],
             'description' => $payload['description'],
             'user_id' => $user->id
@@ -147,11 +146,11 @@ test('store function returns the newly created ticket', function(){
 });
 
 // update
-test('update function exists', function() {
+test('update function exists', function () {
     expect(method_exists(TicketController::class, 'update'))->toBeTrue();
 });
 
-test('update function runs on post call', function(){
+test('update function runs on post call', function () {
 
     $mock = Mockery::mock(TicketController::class)->makePartial();
     $mock->shouldReceive('update')->once();
@@ -161,8 +160,8 @@ test('update function runs on post call', function(){
     $this->put("/api/tickets/1");
 });
 
-test('update function return with status code 200', function(){
-    $user = User::factory()->create(['role'=>'customer']);
+test('update function return with status code 200', function () {
+    $user = User::factory()->create(['role' => 'customer']);
     $this->actingAs($user);
 
     $payload = Ticket::factory()->make([
@@ -173,28 +172,29 @@ test('update function return with status code 200', function(){
     $response->assertStatus(200);
 });
 
-test('update function successfully changes the status', function(){
-    $user = User::factory()->create(['role'=>'customer']);
+test('update function successfully changes the status', function () {
+    $user = User::factory()->create(['role' => 'customer']);
     $this->actingAs($user);
 
     $ticket = Ticket::factory()->create([
         'user_id' => $user->id,
-        'status'=>'open'
+        'status' => 'open'
     ]);
 
-    $updateData = ['status'=>'closed'];
+    $updateData = ['status' => 'closed'];
 
     $response = $this->put("/api/tickets/{$ticket->id}", $updateData);
-    // dd($response);
-    // $response->assertJsonPath('ticket.status', $updateData['status']);
     $response->assertStatus(200);
 });
 
+
+// delete
 test('delete ticket endpoint exists', function () {
     expect(method_exists(TicketController::class, 'destroy'))->toBeTrue();
 });
 
 test('admin can delete a ticket', function () {
+    $this->withMiddleware();
     $admin = User::factory()->create([
         'role' => 'admin',
     ]);
@@ -215,6 +215,8 @@ test('admin can delete a ticket', function () {
 });
 
 test('delete returns 404 if ticket does not exist', function () {
+    $this->withMiddleware();
+
     $admin = User::factory()->create([
         'role' => 'admin',
     ]);
@@ -227,6 +229,8 @@ test('delete returns 404 if ticket does not exist', function () {
 });
 
 test('customer cannot delete a ticket', function () {
+    $this->withMiddleware();
+
     $owner = User::factory()->create();
 
     $ticket = Ticket::factory()->create([
@@ -250,6 +254,8 @@ test('customer cannot delete a ticket', function () {
 
 
 test('guest cannot delete a ticket', function () {
+    $this->withMiddleware();
+
     $owner = User::factory()->create();
 
     $ticket = Ticket::factory()->create([
