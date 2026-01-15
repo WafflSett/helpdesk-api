@@ -43,7 +43,7 @@ class TicketController extends Controller
             'description' => $request->description,
             'user_id' => $user->id,
           ]);
-          return response()->json(['ticket'=>$ticket],200);
+          return response()->json(['ticket'=>$ticket], 201);
     }
 
     /**
