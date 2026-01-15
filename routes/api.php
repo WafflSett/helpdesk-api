@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets', [TicketController::class, 'store']);
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->middleware('can:view,ticket');
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->middleware('can:update,ticket');
-
+    
     // admin only
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware('can:delete,ticket');
     Route::get('/users', [UserController::class, 'users']);
